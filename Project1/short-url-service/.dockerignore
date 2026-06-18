@@ -1,0 +1,36 @@
+# Maven 构建产物（在 builder 阶段重新打包，宿主机的不要带进 build context）
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# 日志 & 临时
+*.log
+jmeter.log
+tools/jmeter/report/
+tools/jmeter/result.jtl
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# 文档（不影响运行）
+README.md
+HELP.md
+LICENSE
+doc/
+
+# 环境变量真实文件（防止泄漏密码进镜像）
+.env
+.env.local
+.env.*.local
+
+# 容器编排文件本身不需要进镜像
+docker-compose.yml
+docker-compose.*.yml

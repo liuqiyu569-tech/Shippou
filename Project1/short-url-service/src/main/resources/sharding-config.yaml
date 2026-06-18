@@ -1,0 +1,42 @@
+mode:
+  type: Standalone
+  repository:
+    type: JDBC
+
+dataSources:
+  ds_0:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    # MYSQL_HOST / MYSQL_PORT 由 ShardingSphereDataSourceConfig 在加载时通过 Spring @Value 替换
+    # 不用 ShardingSphere 自带的 $${...} 占位符 —— mvn spring-boot:run 模式下读不到环境变量
+    jdbcUrl: jdbc:mysql://$${MYSQL_HOST::}:$${MYSQL_PORT::}/short_url?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: $${MYSQL_PASSWORD::}
+    maximumPoolSize: 16
+    minimumIdle: 4
+
+rules:
+  - !SHARDING
+    # ShardingSphere 5.5.x：HASH_MOD/MOD 这类“自动分片算法”必须配在 autoTables 下；
+    # autoTables 模式下 ShardingSphere 按 ${logicTable}_${0..count-1} 自动管理物理表名
+    autoTables:
+      t_short_url:
+        actualDataSources: ds_0
+        shardingStrategy:
+          standard:
+            shardingColumn: short_code
+            shardingAlgorithmName: short_code_hash_mod
+    shardingAlgorithms:
+      short_code_hash_mod:
+        type: HASH_MOD
+        props:
+          sharding-count: 4
+
+  # 5.5.x 严格模式：所有 SQL 涉及的表必须在规则中找到归属。
+  # 全局索引 t_long_url_index 不分片，靠这条把未匹配 SHARDING 的表自动当作单表处理
+  - !SINGLE
+    tables:
+      - "*.*.*"
+
+props:
+  sql-show: false   # 调试时改 true，能看到 ShardingSphere 把逻辑表改写成物理分片表的真实 SQL

@@ -1,0 +1,110 @@
+# ============================================================
+# 生产部署编排（ECS 单机，cn-east-3 上海一）
+# app 镜像从 SWR 拉取；mysql/redis/rabbitmq 走 daocloud 镜像源
+# 只对公网暴露 8080；MySQL/Redis/MQ 仅 compose 内网；MQ 管理口仅本机回环
+# ============================================================
+
+services:
+
+  # ---- MySQL 9.0：首启自动执行 init-docker.sql 建库建分片表 ----
+  mysql:
+    image: docker.m.daocloud.io/library/mysql:9.0
+    container_name: short-url-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-short_url}
+      TZ: Asia/Shanghai
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init-docker.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    mem_limit: 768m
+    networks:
+      - short-url-net
+
+  # ---- Redis 7（AOF 持久化），不发布端口 ----
+  redis:
+    image: docker.m.daocloud.io/library/redis:7-alpine
+    container_name: short-url-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    mem_limit: 256m
+    networks:
+      - short-url-net
+
+  # ---- RabbitMQ 3.13 + 管理 UI（15672 仅绑 127.0.0.1，走 SSH 隧道访问）----
+  rabbitmq:
+    image: docker.m.daocloud.io/library/rabbitmq:3.13-management
+    container_name: short-url-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "127.0.0.1:15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    mem_limit: 512m
+    networks:
+      - short-url-net
+
+  # ---- 应用（等前三个 healthy 再启动）----
+  app:
+    image: swr.cn-east-3.myhuaweicloud.com/liuqiyu/short-url-service:0.0.1-SNAPSHOT
+    container_name: short-url-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      SHORTURL_DOMAIN: ${SHORTURL_DOMAIN}
+      TZ: Asia/Shanghai
+    ports:
+      - "8080:8080"
+    mem_limit: 1536m
+    networks:
+      - short-url-net
+
+volumes:
+  mysql-data:
+  redis-data:
+  rabbitmq-data:
+
+networks:
+  short-url-net:
+    driver: bridge

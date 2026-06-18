@@ -1,0 +1,37 @@
+# Build outputs
+target/
+dist/
+build/
+out/
+
+# Dependencies
+node_modules/
+
+# Local IDE/editor files
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local configuration and secrets
+.env
+*.env
+application-dev.yml
+application-prod.yml
+application.properties
+*.pem
+*.key
+id_rsa
+id_rsa.pub
+
+# Generated binaries
+*.class
+*.pdf
+
+# Assistant/local metadata
+.claude/

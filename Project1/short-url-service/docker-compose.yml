@@ -1,0 +1,133 @@
+# ============================================================
+# Week 8: 本地容器化编排
+# 一台机器跑全套：app + MySQL + Redis + RabbitMQ
+# 用法：
+#   1) cp .env.example .env  填入密码
+#   2) docker compose up -d --build
+#   3) curl http://localhost:8080/actuator/health  (等 60s 让 app 起来)
+# ============================================================
+
+services:
+
+  # ----------------------------------------------------------
+  # MySQL 9.0 —— 与当前 SQL 脚本兼容；宿主映射到 3307 避免占用本机 3306
+  # 首启自动跑 /docker-entrypoint-initdb.d/*.sql 建库建表
+  # ----------------------------------------------------------
+  mysql:
+    image: mysql:9.0
+    container_name: short-url-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-short_url}
+      TZ: Asia/Shanghai
+    ports:
+      - "3307:3306"   # 宿主 3307 避免与本地 MySQL96 (3306) 冲突
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./doc/sql/init-docker.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - short-url-net
+
+  # ----------------------------------------------------------
+  # Redis 7（启用 AOF 持久化）
+  # ----------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: short-url-redis-compose
+    restart: unless-stopped
+    ports:
+      - "6380:6379"   # 宿主 6380 避免与已有 short-url-redis 单独容器冲突
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - short-url-net
+
+  # ----------------------------------------------------------
+  # RabbitMQ 3.13 + management UI（端口 15672）
+  # ----------------------------------------------------------
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: short-url-rabbitmq-compose
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5673:5672"     # AMQP
+      - "15673:15672"   # Management UI（避免与已有 short-url-rabbitmq 容器冲突）
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - short-url-net
+
+  # ----------------------------------------------------------
+  # 应用服务（依赖前三个 healthy 后再启动）
+  # ----------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: short-url-service:0.0.1-SNAPSHOT
+    container_name: short-url-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      # MySQL（容器内连服务名）
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      # Redis（无密码场景下不传 SPRING_DATA_REDIS_PASSWORD）
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # RabbitMQ
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      # 短链域名
+      SHORTURL_DOMAIN: ${SHORTURL_DOMAIN:-http://localhost:8080}
+      TZ: Asia/Shanghai
+    ports:
+      - "8080:8080"
+    networks:
+      - short-url-net
+
+# --------------------------------------------------------------
+# 命名 volumes（数据持久化，docker compose down 不删；down -v 才删）
+# --------------------------------------------------------------
+volumes:
+  mysql-data:
+  redis-data:
+  rabbitmq-data:
+
+networks:
+  short-url-net:
+    driver: bridge

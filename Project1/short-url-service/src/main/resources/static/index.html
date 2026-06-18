@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>短链接服务</title>
+  <style>
+    :root {
+      --bg: #f6f7f2;
+      --panel: #ffffff;
+      --panel-soft: #f1f5ef;
+      --ink: #17211d;
+      --muted: #66736c;
+      --line: #dfe6dc;
+      --primary: #186a5b;
+      --primary-strong: #0f4d43;
+      --accent: #d9683b;
+      --amber: #c58a1b;
+      --danger: #b33a3a;
+      --shadow: 0 18px 50px rgba(28, 43, 35, 0.12);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      line-height: 1.5;
+      background:
+        linear-gradient(135deg, rgba(24, 106, 91, 0.10), transparent 34%),
+        linear-gradient(315deg, rgba(217, 104, 59, 0.12), transparent 28%),
+        var(--bg);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 26px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      color: #ffffff;
+      border-radius: var(--radius);
+      background: var(--primary);
+      box-shadow: 0 10px 24px rgba(24, 106, 91, 0.26);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 36px;
+      padding: 0 12px;
+      color: var(--primary-strong);
+      text-decoration: none;
+      border: 1px solid rgba(24, 106, 91, 0.24);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--amber);
+    }
+
+    .status-dot.ok {
+      background: var(--primary);
+    }
+
+    .status-dot.bad {
+      background: var(--danger);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .panel {
+      border: 1px solid rgba(223, 230, 220, 0.86);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .creator {
+      padding: 24px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 42px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .section-title p {
+      max-width: 520px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .badge {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 34px;
+      padding: 0 11px;
+      color: #7a3d20;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid rgba(217, 104, 59, 0.25);
+      border-radius: 999px;
+      background: rgba(255, 239, 229, 0.84);
+    }
+
+    .form {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      color: #33433c;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+    }
+
+    input {
+      width: 100%;
+      min-height: 50px;
+      padding: 0 14px;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      outline: none;
+      background: #fbfcfa;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    input:focus {
+      border-color: rgba(24, 106, 91, 0.72);
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(24, 106, 91, 0.12);
+    }
+
+    .primary-btn,
+    .icon-btn,
+    .secondary-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 50px;
+      border: 0;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .primary-btn {
+      min-width: 142px;
+      padding: 0 18px;
+      color: #ffffff;
+      font-weight: 800;
+      background: var(--primary);
+      box-shadow: 0 12px 28px rgba(24, 106, 91, 0.24);
+    }
+
+    .primary-btn:hover,
+    .icon-btn:hover,
+    .secondary-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary-btn:hover {
+      background: var(--primary-strong);
+    }
+
+    .primary-btn:disabled {
+      cursor: wait;
+      opacity: 0.72;
+      transform: none;
+    }
+
+    .secondary-btn {
+      min-width: 118px;
+      padding: 0 14px;
+      color: var(--primary-strong);
+      font-weight: 800;
+      border: 1px solid rgba(24, 106, 91, 0.28);
+      background: #ffffff;
+    }
+
+    .icon-btn {
+      width: 50px;
+      color: var(--primary-strong);
+      border: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .result {
+      display: none;
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid rgba(24, 106, 91, 0.22);
+      border-radius: var(--radius);
+      background: var(--panel-soft);
+    }
+
+    .result.show {
+      display: block;
+    }
+
+    .result-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .result-head strong {
+      font-size: 15px;
+    }
+
+    .short-url {
+      display: block;
+      overflow-wrap: anywhere;
+      color: var(--primary-strong);
+      font-size: clamp(18px, 3vw, 26px);
+      font-weight: 850;
+      text-decoration: none;
+    }
+
+    .result-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .meta-chip {
+      padding: 6px 9px;
+      color: #4f5f57;
+      font-size: 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .toast {
+      min-height: 22px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toast.error {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .side {
+      display: grid;
+      gap: 18px;
+    }
+
+    .system-card,
+    .detail-card {
+      padding: 18px;
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 14px;
+      font-size: 16px;
+      font-weight: 850;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      min-height: 86px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfcfa;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .flow {
+      display: grid;
+      gap: 10px;
+    }
+
+    .flow-item {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      color: #34453e;
+    }
+
+    .flow-icon {
+      display: grid;
+      width: 32px;
+      height: 32px;
+      place-items: center;
+      color: #ffffff;
+      border-radius: var(--radius);
+      background: var(--accent);
+    }
+
+    .api-strip {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .endpoint {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
+    .method {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    code {
+      color: #26342f;
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: 13px;
+    }
+
+    svg {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 860px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .section-title {
+        display: grid;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .shell {
+        width: min(100% - 20px, 1120px);
+        padding-top: 14px;
+      }
+
+      .topbar,
+      .input-row,
+      .result-head,
+      .endpoint {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .topbar {
+        display: grid;
+      }
+
+      .top-actions {
+        justify-content: flex-start;
+      }
+
+      .input-row {
+        grid-template-columns: 1fr;
+      }
+
+      .primary-btn,
+      .secondary-btn {
+        width: 100%;
+      }
+
+      .creator {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M9.5 14.5 14.5 9.5M10.8 7.2l1.1-1.1a4 4 0 0 1 5.7 5.7l-1.1 1.1M13.2 16.8l-1.1 1.1a4 4 0 0 1-5.7-5.7l1.1-1.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <h1>短链接服务</h1>
+          <p>Distributed Short URL Service</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="pill"><span id="healthDot" class="status-dot"></span><span id="healthText">检测中</span></span>
+        <a class="pill" href="/doc.html" target="_blank" rel="noreferrer">API 文档</a>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="panel creator" aria-labelledby="creatorTitle">
+        <div class="section-title">
+          <div>
+            <h2 id="creatorTitle">把长链接压缩成清爽短链</h2>
+            <p>输入需要转发的 URL，服务会生成可直接分享的短链接，并保持后端的缓存、限流和分片能力。</p>
+          </div>
+          <span class="badge">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M13 2 4 14h7l-1 8 10-13h-7l0-7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+            低延迟跳转
+          </span>
+        </div>
+
+        <form id="shortenForm" class="form">
+          <div class="field">
+            <label for="longUrl">长链接</label>
+            <div class="input-row">
+              <input id="longUrl" name="longUrl" type="url" placeholder="https://www.fudan.edu.cn" autocomplete="url" required>
+              <button id="submitBtn" class="primary-btn" type="submit">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                生成短链
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="expireTime">过期时间</label>
+            <input id="expireTime" name="expireTime" type="datetime-local">
+          </div>
+        </form>
+
+        <div id="result" class="result" aria-live="polite">
+          <div class="result-head">
+            <strong>生成结果</strong>
+            <div class="top-actions">
+              <button id="copyBtn" class="icon-btn" type="button" title="复制短链" aria-label="复制短链">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" stroke-width="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+              <a id="openBtn" class="secondary-btn" href="#" target="_blank" rel="noreferrer">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                打开
+              </a>
+            </div>
+          </div>
+          <a id="shortUrl" class="short-url" href="#" target="_blank" rel="noreferrer"></a>
+          <div class="result-meta">
+            <span id="shortCode" class="meta-chip"></span>
+            <span id="originUrl" class="meta-chip"></span>
+          </div>
+        </div>
+
+        <div id="message" class="toast" role="status"></div>
+      </section>
+
+      <aside class="side">
+        <section class="panel system-card" aria-labelledby="systemTitle">
+          <h3 id="systemTitle" class="card-title">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M4 17V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10M2 19h20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            服务概览
+          </h3>
+          <div class="metric-grid">
+            <div class="metric"><span>跳转方式</span><strong>302</strong></div>
+            <div class="metric"><span>编码</span><strong>Base62</strong></div>
+            <div class="metric"><span>缓存</span><strong>Redis</strong></div>
+            <div class="metric"><span>分片</span><strong>4 表</strong></div>
+          </div>
+        </section>
+
+        <section class="panel detail-card" aria-labelledby="flowTitle">
+          <h3 id="flowTitle" class="card-title">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            链路
+          </h3>
+          <div class="flow">
+            <div class="flow-item"><span class="flow-icon">1</span><span>校验并生成短码</span></div>
+            <div class="flow-item"><span class="flow-icon">2</span><span>写入索引与分片表</span></div>
+            <div class="flow-item"><span class="flow-icon">3</span><span>访问短链并异步计数</span></div>
+          </div>
+          <div class="api-strip">
+            <div class="endpoint"><span class="method">POST</span><code>/api/url/create</code></div>
+            <div class="endpoint"><span class="method">GET</span><code>/{shortCode}</code></div>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const form = document.querySelector("#shortenForm");
+    const longUrlInput = document.querySelector("#longUrl");
+    const expireTimeInput = document.querySelector("#expireTime");
+    const submitBtn = document.querySelector("#submitBtn");
+    const message = document.querySelector("#message");
+    const result = document.querySelector("#result");
+    const shortUrl = document.querySelector("#shortUrl");
+    const shortCode = document.querySelector("#shortCode");
+    const originUrl = document.querySelector("#originUrl");
+    const copyBtn = document.querySelector("#copyBtn");
+    const openBtn = document.querySelector("#openBtn");
+    const healthDot = document.querySelector("#healthDot");
+    const healthText = document.querySelector("#healthText");
+
+    let currentShortUrl = "";
+
+    function setMessage(text, isError = false) {
+      message.textContent = text;
+      message.classList.toggle("error", isError);
+    }
+
+    function setLoading(isLoading) {
+      submitBtn.disabled = isLoading;
+      submitBtn.lastChild.textContent = isLoading ? "生成中" : "生成短链";
+    }
+
+    function normalizeUrl(value) {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return "";
+      }
+      return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    }
+
+    function showResult(data) {
+      currentShortUrl = data.shortUrl;
+      shortUrl.textContent = data.shortUrl;
+      shortUrl.href = data.shortUrl;
+      openBtn.href = data.shortUrl;
+      shortCode.textContent = `短码 ${data.shortCode}`;
+      originUrl.textContent = data.longUrl || longUrlInput.value.trim();
+      result.classList.add("show");
+    }
+
+    async function checkHealth() {
+      try {
+        const response = await fetch("/actuator/health", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("health check failed");
+        }
+        const body = await response.json();
+        healthDot.className = `status-dot ${body.status === "UP" ? "ok" : "bad"}`;
+        healthText.textContent = body.status === "UP" ? "服务正常" : "服务异常";
+      } catch (error) {
+        healthDot.className = "status-dot bad";
+        healthText.textContent = "未连接";
+      }
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const longUrl = normalizeUrl(longUrlInput.value);
+
+      if (!longUrl) {
+        setMessage("请输入有效链接。", true);
+        longUrlInput.focus();
+        return;
+      }
+
+      longUrlInput.value = longUrl;
+      setLoading(true);
+      setMessage("");
+
+      const payload = { longUrl };
+      if (expireTimeInput.value) {
+        payload.expireTime = expireTimeInput.value;
+      }
+
+      try {
+        const response = await fetch("/api/url/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const body = await response.json().catch(() => ({}));
+
+        if (!response.ok || body.code !== 200 || !body.data) {
+          throw new Error(body.message || "生成失败，请稍后重试。");
+        }
+
+        showResult(body.data);
+        setMessage("短链接已生成。");
+      } catch (error) {
+        setMessage(error.message || "生成失败，请检查服务状态。", true);
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    copyBtn.addEventListener("click", async () => {
+      if (!currentShortUrl) {
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(currentShortUrl);
+        setMessage("短链接已复制。");
+      } catch (error) {
+        setMessage("当前浏览器不允许直接复制，请手动选择短链接。", true);
+      }
+    });
+
+    checkHealth();
+  </script>
+</body>
+</html>
