@@ -1,0 +1,37 @@
+[project]
+name = "quantlab"
+version = "0.1.0"
+description = "Multi-factor quantitative research and event-driven backtesting platform."
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi>=0.111.0",
+  "uvicorn[standard]>=0.30.0",
+  "pandas>=2.2.0",
+  "numpy>=1.26.0",
+  "scikit-learn>=1.4.0",
+  "pyyaml>=6.0.0",
+  "jinja2>=3.1.0"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+  "ruff>=0.5.0"
+]
+
+[project.scripts]
+quantlab = "quantlab.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+filterwarnings = [
+  "ignore:Using `httpx` with `starlette.testclient` is deprecated"
+]
+
+[tool.setuptools.packages.find]
+include = ["quantlab*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

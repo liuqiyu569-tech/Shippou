@@ -1,145 +1,85 @@
-# TaskFlow - 团队协作任务管理系统
+# QuantLab - 多因子量化研究与事件驱动回测平台
 
-基于 **Vue 3** + **Spring Boot 3** 的全栈团队协作任务管理平台，支持 JWT 认证、多角色权限控制、任务生命周期管理、操作审计与统计分析。
+QuantLab 是一个面向算法、量化和后端岗位展示的研究型项目。项目覆盖行情数据清洗、因子计算、机器学习打分、事件驱动回测、风险指标评估和实验报告生成，重点展示如何把量化研究流程工程化、可复现化。
 
-## 运行环境
+## 项目亮点
 
-| 工具 | 版本 | 说明 |
-| --- | --- | --- |
-| JDK | 17+ | `backend/pom.xml` 使用 Java 17 |
-| Maven | 3.9+ | 后端构建、启动、测试 |
-| Node.js | 20 LTS | 前端开发环境 |
-| npm | 10+ | 前端依赖管理 |
-| MySQL | 8.0 | 可使用本仓库 `docker-compose.yml` 启动 |
+- **因子研究**：实现动量、反转、波动率、成交量异动、均线偏离、RSI 等因子，并输出 RankIC、ICIR 等有效性指标。
+- **机器学习建模**：基于滚动训练窗口构建横截面收益预测模型，避免未来函数，支持特征工程与模型信号融合。
+- **事件驱动回测**：显式处理调仓周期、手续费、滑点、持仓上限、现金、持仓、成交记录和净值曲线。
+- **风险评估**：输出年化收益、年化波动率、Sharpe、最大回撤、Calmar、换手率等指标。
+- **工程化接口**：提供命令行入口和 FastAPI 接口，支持自动生成 CSV 结果与 HTML 实验报告。
 
-## 项目启动方式
+## 技术栈
 
-### 1. 启动数据库
+| 模块 | 技术 |
+| --- | --- |
+| 语言 | Python 3.10+ |
+| 数据处理 | pandas, numpy |
+| 机器学习 | scikit-learn RandomForestRegressor |
+| API | FastAPI, Uvicorn |
+| 配置 | YAML |
+| 报告 | Jinja2 HTML |
+| 测试 | pytest |
 
-推荐使用本机 MySQL，请手动创建数据库：
-
-```sql
-CREATE DATABASE IF NOT EXISTS taskflow
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-```
-
-或使用 Docker 启动 MySQL：
+## 快速启动
 
 ```bash
-docker-compose up -d
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -e ".[dev]"
+python -m quantlab.cli --config configs/sample_strategy.yml --output outputs
 ```
 
-该命令会启动 `taskflow-mysql` 容器，并自动创建 `taskflow` 数据库。默认连接信息：
+运行成功后会在 `outputs/` 下生成：
+
+- `momentum_quality_demo_equity.csv`：净值曲线
+- `momentum_quality_demo_trades.csv`：交易明细
+- `momentum_quality_demo_factor_ic.csv`：因子 IC 分析
+- `momentum_quality_demo_report.html`：实验报告
+
+## 启动 API
+
+```bash
+uvicorn quantlab.api.main:app --reload --port 8000
+```
+
+接口：
+
+- `GET /health`
+- `POST /experiments/demo`
+
+## 项目结构
 
 ```text
-host: localhost
-port: 3306
-database: taskflow
-username: root
-password: root
+Project2
+├── configs
+│   └── sample_strategy.yml
+├── docs
+│   └── architecture.md
+├── quantlab
+│   ├── api
+│   ├── backtest
+│   ├── data
+│   ├── reporting
+│   ├── research
+│   ├── cli.py
+│   └── experiment.py
+└── tests
 ```
 
-### 2. 配置并启动后端
+## 简历描述建议
 
-```bash
-cd backend
-cp src/main/resources/application-dev.yml.example src/main/resources/application-dev.yml
-```
+**QuantLab 多因子量化研究与事件驱动回测平台**
 
-根据实际 MySQL 环境修改 `src/main/resources/application-dev.yml` 中的数据库连接信息。
+- 构建行情数据清洗与因子计算流水线，实现动量、反转、波动率、成交量异动、均线偏离、RSI 等多类因子，并通过 RankIC、ICIR 评估因子有效性。
+- 设计事件驱动回测引擎，支持手续费、滑点、调仓周期、持仓上限、现金与成交记录管理，输出年化收益、Sharpe、最大回撤、Calmar、换手率等指标。
+- 基于滚动训练窗口构建横截面收益预测模型，融合机器学习信号与传统因子信号，避免训练验证中的未来函数问题。
+- 使用 FastAPI 提供实验运行接口，基于 YAML 管理策略参数，自动生成净值曲线、交易明细、因子 IC 和 HTML 实验报告。
 
-启动后端：
+## 后续可增强方向
 
-```bash
-mvn spring-boot:run
-```
-
-后端默认地址：`http://localhost:8080`
-
-### 3. 启动前端
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-前端默认地址：`http://localhost:5173`
-
-## 数据库初始化与迁移说明
-
-项目使用 **Flyway** 管理数据库结构，后端启动时会自动执行 `backend/src/main/resources/db/migration` 下尚未执行过的迁移脚本。当前迁移包括：
-
-| 迁移文件 | 说明 |
-| --- | --- |
-| `V1__init_schema.sql` | 用户与个人任务基础表 |
-| `V2__add_team_tables.sql` | 团队、成员、任务分配相关表 |
-| `V3__add_task_assignee_indexes.sql` | 任务分配索引优化 |
-| `V4__align_schema.sql` | Schema 对齐优化 |
-| `V5__add_task_dependencies.sql` | 任务依赖关系表 |
-| `V6__add_task_operation_logs.sql` | 任务操作日志表 |
-
-## 核心设计
-
-### 角色权限模型
-
-系统采用三级角色模型：**Owner**（拥有者）> **Admin**（管理员）> **Member**（普通成员）。
-
-- 创建团队的用户自动成为 Owner，拥有全部管理权限。
-- Admin 可创建、修改、删除任务并分配成员，但不能管理团队成员。
-- Member 仅可浏览团队任务，且只能修改分配给自己的任务状态。
-- **所有权限在后端 Service 层强制校验**，前端仅做 UI 级别展示控制。
-
-### 数据隔离策略
-
-- **用户级隔离**：个人任务接口基于 `creator_user_id` 过滤，用户只能操作自己的任务。
-- **团队级隔离**：所有团队接口入口统一校验成员角色，非团队成员一律返回 403。
-- **任务归属区分**：`tasks.team_id IS NULL` 为个人任务，非空为团队任务，两个查询路径互不交叉。
-
-### 技术选型要点
-
-- **JWT 无状态认证**：Token 含 userId 和 username，24 小时有效期，前端 Axios 拦截器自动附加 Authorization 头。
-- **Flyway 数据库迁移**：通过版本化 SQL 脚本管理表结构演进，启动时自动执行未应用的迁移。
-- **JPA Specification 动态查询**：团队任务列表筛选（状态、优先级、分配人、时间范围）通过组合 Specification 实现。
-
-## 功能概览
-
-- 用户注册/登录（JWT 认证）
-- 个人任务 CRUD（创建、编辑、状态流转、优先级、截止时间）
-- 团队管理（创建、加入、成员管理、角色变更、所有权转让、解散）
-- 团队任务管理（创建、分配、状态追踪、多条件筛选与分页）
-- 任务依赖关系（添加/移除前置依赖、循环检测、可视化依赖图）
-- 任务操作日志（自动记录、权限隔离、已删除任务历史回溯）
-- 团队任务统计（状态分布、优先级分布、逾期/即将到期统计）
-- 关键词搜索（按标题/描述搜索，与筛选分页兼容）
-- 截止时间提醒（动态计算 dueStatus 并前端展示）
-
-## 测试运行
-
-### 后端测试
-
-```bash
-cd backend
-mvn test
-```
-
-测试覆盖：任务依赖业务规则、团队成员管理、权限校验、操作日志权限隔离、接口请求校验等。
-
-### 前端检查
-
-```bash
-cd frontend
-npm install
-npm run build
-```
-
-`npm run build` 会先执行 `vue-tsc -b` 类型检查，再执行 Vite 生产构建。
-
-## 文档索引
-
-- 环境配置说明：`docs/环境配置说明.md`
-- 开发指南：`docs/开发指南.md`
-- 接口文档：`docs/接口文档.md`
-- 数据库设计文档：`docs/数据库设计文档.md`
-- 系统回归测试与验收用例：`docs/系统回归测试与验收用例.md`
+- 接入 AKShare/Tushare 或本地真实行情 CSV。
+- 增加行业/市值中性化、Barra 风格风险暴露。
+- 增加 LightGBM/XGBoost 排序模型和 Walk-forward validation。
+- 使用 PostgreSQL/ClickHouse 存储行情、因子和实验结果。

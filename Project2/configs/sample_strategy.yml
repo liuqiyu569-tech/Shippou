@@ -1,0 +1,19 @@
+experiment:
+  name: momentum_quality_demo
+  start_cash: 1000000
+  rebalance_frequency: 20
+  top_k: 5
+  commission_rate: 0.0003
+  slippage_rate: 0.0005
+  max_weight_per_asset: 0.25
+
+data:
+  symbols: ["AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG", "HHH", "III", "JJJ"]
+  start: "2022-01-03"
+  periods: 520
+  seed: 42
+
+model:
+  enabled: true
+  train_window: 180
+  prediction_horizon: 5

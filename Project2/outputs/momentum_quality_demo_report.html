@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>momentum_quality_demo QuantLab Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 32px; color: #1f2933; }
+    h1, h2 { margin-bottom: 8px; }
+    table { border-collapse: collapse; width: 100%; margin: 16px 0 28px; }
+    th, td { border: 1px solid #d6dde5; padding: 8px 10px; text-align: right; }
+    th:first-child, td:first-child { text-align: left; }
+    th { background: #f4f7fb; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .metric { border: 1px solid #d6dde5; padding: 14px; border-radius: 6px; }
+    .label { color: #637083; font-size: 12px; }
+    .value { font-size: 20px; font-weight: 700; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <h1>momentum_quality_demo 回测报告</h1>
+  <p>本报告由 QuantLab 自动生成，覆盖收益、回撤、换手率、因子 IC 与交易样本。</p>
+  <div class="grid">
+    
+    <div class="metric">
+      <div class="label">total_return</div>
+      <div class="value">0.0371</div>
+    </div>
+    
+    <div class="metric">
+      <div class="label">annual_return</div>
+      <div class="value">0.0193</div>
+    </div>
+    
+    <div class="metric">
+      <div class="label">annual_volatility</div>
+      <div class="value">0.1467</div>
+    </div>
+    
+    <div class="metric">
+      <div class="label">sharpe</div>
+      <div class="value">0.1312</div>
+    </div>
+    
+    <div class="metric">
+      <div class="label">max_drawdown</div>
+      <div class="value">-0.1899</div>
+    </div>
+    
+    <div class="metric">
+      <div class="label">calmar</div>
+      <div class="value">0.1014</div>
+    </div>
+    
+    <div class="metric">
+      <div class="label">turnover</div>
+      <div class="value">0.0238</div>
+    </div>
+    
+  </div>
+  <h2>因子 RankIC</h2>
+  <table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>factor</th>
+      <th>mean_rank_ic</th>
+      <th>ic_std</th>
+      <th>ic_ir</th>
+      <th>observations</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>volume_zscore_20</td>
+      <td>0.0076</td>
+      <td>0.3382</td>
+      <td>0.0225</td>
+      <td>496</td>
+    </tr>
+    <tr>
+      <td>ma_gap_20</td>
+      <td>-0.0010</td>
+      <td>0.3561</td>
+      <td>-0.0029</td>
+      <td>496</td>
+    </tr>
+    <tr>
+      <td>factor_score</td>
+      <td>-0.0049</td>
+      <td>0.3504</td>
+      <td>-0.0140</td>
+      <td>495</td>
+    </tr>
+    <tr>
+      <td>reversal_5</td>
+      <td>-0.0146</td>
+      <td>0.3402</td>
+      <td>-0.0428</td>
+      <td>510</td>
+    </tr>
+    <tr>
+      <td>momentum_20</td>
+      <td>-0.0185</td>
+      <td>0.3386</td>
+      <td>-0.0547</td>
+      <td>495</td>
+    </tr>
+    <tr>
+      <td>volatility_20</td>
+      <td>-0.0226</td>
+      <td>0.3443</td>
+      <td>-0.0658</td>
+      <td>495</td>
+    </tr>
+    <tr>
+      <td>rsi_14</td>
+      <td>-0.0229</td>
+      <td>0.3319</td>
+      <td>-0.0690</td>
+      <td>505</td>
+    </tr>
+  </tbody>
+</table>
+  <h2>最近净值</h2>
+  <table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>date</th>
+      <th>equity</th>
+      <th>cash</th>
+      <th>turnover</th>
+      <th>gross_exposure</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2023-12-18</td>
+      <td>1014746.5070</td>
+      <td>-144.3642</td>
+      <td>0.0</td>
+      <td>1.0003</td>
+    </tr>
+    <tr>
+      <td>2023-12-19</td>
+      <td>1008299.4550</td>
+      <td>-144.3642</td>
+      <td>0.0</td>
+      <td>1.0003</td>
+    </tr>
+    <tr>
+      <td>2023-12-20</td>
+      <td>1006870.1005</td>
+      <td>-144.3642</td>
+      <td>0.0</td>
+      <td>1.0003</td>
+    </tr>
+    <tr>
+      <td>2023-12-21</td>
+      <td>1029526.3902</td>
+      <td>-144.3642</td>
+      <td>0.0</td>
+      <td>1.0003</td>
+    </tr>
+    <tr>
+      <td>2023-12-22</td>
+      <td>1029636.3081</td>
+      <td>-144.3642</td>
+      <td>0.0</td>
+      <td>1.0003</td>
+    </tr>
+    <tr>
+      <td>2023-12-25</td>
+      <td>1028960.8108</td>
+      <td>-144.3642</td>
+      <td>0.0</td>
+      <td>1.0003</td>
+    </tr>
+    <tr>
+      <td>2023-12-26</td>
+      <td>1025245.9443</td>
+      <td>-144.3642</td>
+      <td>0.0</td>
+      <td>1.0003</td>
+    </tr>
+    <tr>
+      <td>2023-12-27</td>
+      <td>1040266.0263</td>
+      <td>-144.3642</td>
+      <td>0.0</td>
+      <td>1.0003</td>
+    </tr>
+    <tr>
+      <td>2023-12-28</td>
+      <td>1042886.1079</td>
+      <td>-144.3642</td>
+      <td>0.0</td>
+      <td>1.0003</td>
+    </tr>
+    <tr>
+      <td>2023-12-29</td>
+      <td>1036236.2046</td>
+      <td>-144.3642</td>
+      <td>0.0</td>
+      <td>1.0003</td>
+    </tr>
+  </tbody>
+</table>
+  <h2>最近交易</h2>
+  <table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>date</th>
+      <th>symbol</th>
+      <th>side</th>
+      <th>shares</th>
+      <th>price</th>
+      <th>commission</th>
+      <th>notional</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2023-11-06</td>
+      <td>HHH</td>
+      <td>BUY</td>
+      <td>1.0983</td>
+      <td>98.9332</td>
+      <td>0.0326</td>
+      <td>108.6630</td>
+    </tr>
+    <tr>
+      <td>2023-11-06</td>
+      <td>III</td>
+      <td>SELL</td>
+      <td>-2579.2726</td>
+      <td>89.4252</td>
+      <td>69.1956</td>
+      <td>-230652.0919</td>
+    </tr>
+    <tr>
+      <td>2023-11-06</td>
+      <td>JJJ</td>
+      <td>BUY</td>
+      <td>67.6718</td>
+      <td>214.0767</td>
+      <td>4.3461</td>
+      <td>14486.9537</td>
+    </tr>
+    <tr>
+      <td>2023-12-04</td>
+      <td>CCC</td>
+      <td>BUY</td>
+      <td>940.3656</td>
+      <td>223.1410</td>
+      <td>62.9502</td>
+      <td>209834.1208</td>
+    </tr>
+    <tr>
+      <td>2023-12-04</td>
+      <td>DDD</td>
+      <td>SELL</td>
+      <td>-31.3942</td>
+      <td>107.5300</td>
+      <td>1.0127</td>
+      <td>-3375.8167</td>
+    </tr>
+    <tr>
+      <td>2023-12-04</td>
+      <td>EEE</td>
+      <td>SELL</td>
+      <td>-198.7976</td>
+      <td>111.5872</td>
+      <td>6.6550</td>
+      <td>-22183.2624</td>
+    </tr>
+    <tr>
+      <td>2023-12-04</td>
+      <td>FFF</td>
+      <td>BUY</td>
+      <td>618.9454</td>
+      <td>49.9534</td>
+      <td>9.2755</td>
+      <td>30918.4199</td>
+    </tr>
+    <tr>
+      <td>2023-12-04</td>
+      <td>GGG</td>
+      <td>SELL</td>
+      <td>-1854.6889</td>
+      <td>107.0254</td>
+      <td>59.5497</td>
+      <td>-198498.8657</td>
+    </tr>
+    <tr>
+      <td>2023-12-04</td>
+      <td>III</td>
+      <td>BUY</td>
+      <td>1.2890</td>
+      <td>75.9055</td>
+      <td>0.0294</td>
+      <td>97.8416</td>
+    </tr>
+    <tr>
+      <td>2023-12-04</td>
+      <td>JJJ</td>
+      <td>SELL</td>
+      <td>-76.1914</td>
+      <td>222.4051</td>
+      <td>5.0836</td>
+      <td>-16945.3514</td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>
